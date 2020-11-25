@@ -22,13 +22,18 @@ OF THIS SOFTWARE.
 
 */
 
+#ifndef BD_WADEXTRACT_H
+#define BD_WADEXTRACT_H
 
+#define WAD_INTSIZE 4
+#define WAD_TYPESIZE 4
+#define WAD_NAMESIZE 8
 
 struct bd_wadhead  {
 
   char wadtype[8];
   int32_t lumpcount;
-  int32_t dirpos;
+  int32_t lumplistpos;
 
 };
 
@@ -48,26 +53,32 @@ struct bd_wad  {
 
 };
 
-int bd_init_wadhead( 
-  struct bd_wadhead *const wh );
+void bd_init_wadhead( 
+    struct bd_wadhead *const wh );
 
-int bd_init_wadlump( 
-  struct bd_wadlump *const wl );
+void bd_init_wadlump( 
+    struct bd_wadlump *const wl );
 
-int bd_loadwadhead( 
-  const int fd,
-  struct bd_wadhead *const  );
+int bd_load_wadhead( 
+    const int fd,
+    struct bd_wadhead *const );
 
-int bd_loadwadentlist( 
-  const int fd,
-  const struct bd_wadhead *const wh,
-  struct bd_wadlump *const lumplist );
+int bd_load_wadentlist( 
+    const int fd,
+    const struct bd_wadhead *const wh,
+    struct bd_wadlump *const lumplist );
 
-int bd_loadwadentries( 
-  const int fd,
-  const struct bd_wadhead *const wh,
-  struct bd_wadlump *const lumplist );
+int bd_load_wadent( 
+    const int fd,
+    const struct bd_wadhead *const wh,
+    struct bd_wadlump *const lumplist,
+    void *const buff,
+    const size_t buff_size );
 
-int bd_loadwad(
-  const char *const wadname,
-  struct bd_wad *const wad );
+int bd_load_wad(
+    const char *const wadname,
+    struct bd_wad *const wad,
+    void *const buff,
+    const size_t buff_size );
+
+#endif

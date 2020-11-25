@@ -29,7 +29,10 @@ OF THIS SOFTWARE.
 #include <unistd.h>
 
 
-ssize_t bd_readfd( const int fd, void *const buff, const size_t buff_size )  {
+ssize_t bd_readfd( 
+    const int fd, 
+    void *const buff, 
+    const size_t buff_size )  {
 
   // sizeof( ssize_t ) should == sizeof( size_t )
   if( buff_size >= SSIZE_MAX )  {
@@ -73,3 +76,13 @@ ssize_t bd_readfd( const int fd, void *const buff, const size_t buff_size )  {
 
 }
 
+int bd_readfd_strictsize( 
+    const int fd, 
+    void *const buff, 
+    const size_t buff_size )  {
+
+  ssize_t readret = bd_readfd( fd, buff, buff_size );
+  if( readret != buff_size )  return -1;
+  return 0;
+
+}

@@ -27,6 +27,14 @@ OF THIS SOFTWARE.
 
 #include <unistd.h>
 
-size_t bd_readfd( const int, void *const buff, const size_t buff_size );
+ssize_t bd_readfd( 
+    const int fd, 
+    void *const buff, 
+    const size_t buff_size );
+
+int bd_readfd_strictsize( 
+    const int fd, 
+    void *const buff, 
+    const size_t buff_size );
 
 #endif

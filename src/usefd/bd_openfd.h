@@ -27,6 +27,7 @@ OF THIS SOFTWARE.
 #ifndef BD_OPENFD_H
 #define BD_OPENFD_H
 
-int bd_openreadfd( const char *const filename );
+int bd_openreadfd( 
+    const char *const filename );
 
 #endif

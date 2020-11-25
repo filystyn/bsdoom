@@ -2,7 +2,7 @@
 
 Copyright (c) 2020 Filystyn filystyn@int.pl
 
-Permission to use, copy, modify, and distribute 
+Permission to use, copy, modify, and distribute
 this software for any purpose with or without fee
 is hereby granted, provided that the above copyright
 notice and this permission notice appear in all copies.
@@ -22,30 +22,9 @@ OF THIS SOFTWARE.
 
 */
 
+#ifndef BD_WADPROC_H
+#define BD_WADPROC_H
 
-#include "bd_openfd.h"
+#include "bd_wadextract.h"
 
-#include <sys/stat.h>
-
-#include <fcntl.h>
-
-int bd_openreadfd( 
-  const char *const name )  {
-
-  int fd = -1;
-  for(;;)  {
-
-    fd = open( name, O_RDONLY );  
-    if( fd == -1 ) {
-
-      if( errno == EINTR )
-        continue;
-      return -1;
-
-    }
-
-    return fd;
-
-  }
-
-}
+#endif
