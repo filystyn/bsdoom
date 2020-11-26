@@ -105,14 +105,19 @@ int bd_load_wad(
   if( bd_load_wadhead( fd, &( wad->head ) ) == -1 )
     goto failret;
 
-  // broken wad file
-  if( wad->head.lumpcount < 0 )  return -1;
+  // broken wad file checks
+  if( wad->head.lumpcount < 0 )  goto failret;
+  if( wad->head.lumplistpos < 0 )  goto failret;
+
+  if( wad->head.lumplistpos >= max_fdoffset )
+    goto failret;
+
 
   wad->lump = malloc( wad->head.lumpcount * 
     sizeof *( wad->lump ) );
   if( wad->lump == NULL )  goto failret;
 
-
+// here
 
   for( int32_t i = 0; i < wad->head.lumpcount; i++ )  {
 
