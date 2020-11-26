@@ -96,7 +96,8 @@ int bd_load_wad(
   int fd = bd_openreadfd( wadname );
   if( fd == -1 )  return -1;
 
-  // check file size
+  off_t max_fdoffset = lseek( fd, 0, SEEK_END );
+  if( max_fdoffset == -1 )  goto failret;
   // than check lump and other stuff pos - does it not
   // jump too far where should be no file
 
@@ -111,17 +112,20 @@ int bd_load_wad(
     sizeof *( wad->lump ) );
   if( wad->lump == NULL )  goto failret;
 
+
+
   for( int32_t i = 0; i < wad->head.lumpcount; i++ )  {
 
     bd_init_wadlump( &( wad->lump[i] ) );
 
+    
   
   }
 
 
 
 failret2:
-
+  free( wad0>head.lump );
 failret:
   int saveerrno = errno;
   close( fd );
