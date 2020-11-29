@@ -25,9 +25,9 @@ OF THIS SOFTWARE.
 #ifndef BD_WADEXTRACT_H
 #define BD_WADEXTRACT_H
 
-#define BD_WAD_INTSIZE 4
-#define BD_WAD_TYPESIZE 4
-#define BD_WAD_NAMESIZE 8
+#define WAD_INTSIZE 4
+#define WAD_TYPESIZE 4
+#define WAD_NAMESIZE 8
 
 struct bd_wadhead  {
 
@@ -57,15 +57,15 @@ void bd_init_wadhead(
     struct bd_wadhead *const wh );
 
 void bd_init_wadent( 
-    struct bd_wadent *const we );
+    struct bd_wadent *const wl );
 
 int bd_load_wadhead( 
     const int fd,
-    struct bd_wadhead *const wh );
+    struct bd_wadhead *const );
 
 int bd_load_wadent( 
     const int fd,
-    struct bd_wadent *const we );
+    struct bd_wadlump *const lump );
 
 int bd_load_wadlump( 
     const int fd,

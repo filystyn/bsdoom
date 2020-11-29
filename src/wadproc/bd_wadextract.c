@@ -25,8 +25,23 @@ OF THIS SOFTWARE.
 #include "bd_wadextract.h"
 #include "../usefd/bd_usefd.h"
 
-
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+// check if compilation as wadchecker
+// if not simply no code is inserred
+
+#ifndef BD_WADCHK_PROGRAM
+  #define BD_WADCHK_PROGRAM 0
+#endif
+
+#if ( BD_WADCHK_PROGRAM == 0 )
+  #define BD_WADCHK_CODE(x)
+#else
+  #define BD_WADCHK_CODE(x) x
+#endif
 
 void bd_init_wadhead( 
     struct bd_wadhead *const wh )
@@ -37,13 +52,13 @@ void bd_init_wadhead(
 
 }
 
-void bd_init_wadlump( 
-    struct bd_wadlump *const wl )  {
+void bd_init_wadent( 
+    struct bd_wadent *const we )  {
 
-  wl->pos = 0;
-  wl->size = 0;
-  memset( wl->name, '\0', sizeof wl->name );
-  wh->mem = NULL;
+  we->pos = 0;
+  we->size = 0;
+  memset( we->name, '\0', sizeof we->name );
+  we->lump = NULL;
 
 }
 
@@ -54,38 +69,87 @@ int bd_load_wadhead(
 
   int ret = 0;
   
-  readret = bd_readfd_strictsize( fd, wh->wadtype,
-     WAD_TYPESIZE );
-  if( ret == -1 ) return -1;
-  
-  readret = bd_readfd_strictsize( fd, wh->lumpcount,
-    WAD_INTSIZE );
-  if( ret == -1 )  return -1;
+  ret = bd_readfd_strictsize( fd, &wh->wadtype,
+     BD_WAD_TYPESIZE );
+  if( ret == -1 )  {
 
-  readret = bd_readfd_strictsize( fd, wh->lumplistpos,
-    WAD_INTSIZE );
-  if( ret == -1 )  return -1;
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not load wad type." ) );
+    return -1;
+
+  }
+  
+  ret = bd_readfd_strictsize( fd, &wh->entcount,
+    BD_WAD_INTSIZE );
+  if( ret == -1 )  {
+
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not load ent count." ) );
+    return -1;
+
+  }
+
+  ret = bd_readfd_strictsize( fd, &( wh->entlistpos ),
+    BD_WAD_INTSIZE );
+  if( ret == -1 )  {
+
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not load ent position in file." ) );
+    return -1;
+
+  }
 
   return 0;
 
 }
 
-
-int bd_load_wadentlist( 
+int bd_load_wadent( 
     const int fd,
-    const struct bd_wadhead *const wh,
-    struct bd_wadlump *const lumplist )  {
+    struct bd_wadent *const we )  {
 
-    
+  int ret = 0;
+  ret = bd_readfd_strictsize( fd, &( we->pos ),
+    BD_WAD_INTSIZE );
+  if( ret == -1 )  {
+
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not load lump pos in file" ) );
+    return -1;
+
+  }
+ 
+  ret = bd_readfd_strictsize( fd, &( we->size ),
+    BD_WAD_INTSIZE );
+  if( ret == -1 )  {
+
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not load lump size" ) );
+    return -1;
+
+  }
+
+  ret = bd_readfd_strictsize( fd, &( we->name ),
+    BD_WAD_NAMESIZE );
+  if( ret == -1 )  {
+
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not load lump name" ) );
+    return -1;
+
+  }
+
+  return 0;
 
 }
 
-int bd_load_wadent( 
+int bd_load_wadlump( 
     const int fd,
     const struct bd_wadhead *const wh,
     struct bd_wadlump *const lumplist, 
     void *const buff,
     const size_t buff_size )  {
+
+}
 
 int bd_load_wad(
     const char *const wadname,
@@ -94,43 +158,70 @@ int bd_load_wad(
     const size_t buff_size )  {
 
   int fd = bd_openreadfd( wadname );
-  if( fd == -1 )  return -1;
+  if( fd == -1 )  {
 
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Could not open wad file." ) );
+    return -1;
+
+  }
+
+  // We need this to check if file does not try to go too far
   off_t max_fdoffset = lseek( fd, 0, SEEK_END );
   if( max_fdoffset == -1 )  goto failret;
-  // than check lump and other stuff pos - does it not
-  // jump too far where should be no file
 
   bd_init_wadhead( &( wad->head ) );
   if( bd_load_wadhead( fd, &( wad->head ) ) == -1 )
     goto failret;
 
   // broken wad file checks
-  if( wad->head.lumpcount < 0 )  goto failret;
-  if( wad->head.lumplistpos < 0 )  goto failret;
+  if( wad->head.lumpcount < 0 )  {
 
-  if( wad->head.lumplistpos >= max_fdoffset )
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Wad lump count has minus value." ) );
     goto failret;
 
-
-  wad->lump = malloc( wad->head.lumpcount * 
-    sizeof *( wad->lump ) );
-  if( wad->lump == NULL )  goto failret;
-
-// here
-
-  for( int32_t i = 0; i < wad->head.lumpcount; i++ )  {
-
-    bd_init_wadlump( &( wad->lump[i] ) );
-
-    
+  }
+  if( wad->head.entlistpos < 0 )  {
   
+    BD_WADCHK_CODE( fprintf( stderr,
+      "Lump list position on minus value." ) );
+    goto failret;
+
+  }
+  if( wad->head.entlistpos >= max_fdoffset )  {
+
+    BD_WADCHK_CODE( fprintf( stderr, "Lump list"
+      "position is higher than wad file size" ) );
+    goto failret;
+
   }
 
+  wad->lump = malloc( wad->head.entcount * 
+    sizeof *( wad->ent ) );
+  if( wad->ent == NULL )  goto failret;
 
+  // move to wad entries list and load it
+  if( lseek( fd, ( off_t )wad->head.entlistpos ,SEEK_SET )
+     == -1 ) goto failret2;
+  for( int32_t i = 0; i < wad->head.entcount; i++ )  {
+
+    bd_init_wadent( &( wad->ent[i] ) );
+    if( bd_load_wadent( fd, &( wad->head.ent[i] ) ) == -1 )  {
+
+      BD_WADCHK_CODE( fprintf( stderr, "Broken lump"
+        "at %" PRId32 "d", i ) );
+      goto failret2;
+
+    }
+
+  }
+
+  // now that we filled the list
+  // allocate the lumps
 
 failret2:
-  free( wad0>head.lump );
+  free( wad->head.lump );
 failret:
   int saveerrno = errno;
   close( fd );
